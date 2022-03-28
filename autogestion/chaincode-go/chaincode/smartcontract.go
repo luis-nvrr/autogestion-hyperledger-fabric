@@ -2,6 +2,7 @@ package chaincode
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -47,6 +48,16 @@ type Grade struct {
 }
 
 func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) error {
+
+	mspid, err := ctx.GetClientIdentity().GetMSPID()
+	if err != nil {
+		return err
+	}
+
+	if mspid == "Org3MSP" {
+		return errors.New("invalid user")
+	}
+
 	student := Student{79581, "Luis", "Navarro", Fifth}
 
 	grades := []Grade{
@@ -70,7 +81,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 }
 
 // GetAllAssets returns all assets found in world state
-func (s *SmartContract) GetAllAssets(ctx contractapi.TransactionContextInterface) ([]*Grade, error) {
+func (s *SmartContract) GetAllGrades(ctx contractapi.TransactionContextInterface) ([]*Grade, error) {
 	// range query with empty string for startKey and endKey does an
 	// open-ended query of all assets in the chaincode namespace.
 	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
