@@ -5,6 +5,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
+/// moved
 function createOrg3 {
 	infoln "Enrolling the CA admin"
 	mkdir -p ../organizations/peerOrganizations/org3.example.com/
