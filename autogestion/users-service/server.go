@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -16,10 +17,10 @@ import (
 
 var jwtKey = []byte("my_secret_key")
 
-type User struct {
-	Username     string
-	Password     string
-	Organization string
+type UserRequest struct {
+	Username     string `json:"username"`
+	Password     string `json:"password"`
+	Organization string `json:"organization"`
 }
 
 var (
@@ -43,7 +44,7 @@ func ConnDB() {
 }
 
 func Register(c *gin.Context) {
-	var user User
+	var user UserRequest
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, "couldn't serialize body")
 		return
@@ -67,6 +68,17 @@ func Register(c *gin.Context) {
 	c.JSON(http.StatusCreated, user)
 }
 
+type UserLogin struct {
+	Username     string `json:"username"`
+	Password     string `json:"password"`
+}
+
+type UserReponse struct {
+	Username string `json:"username"`
+	Organization string `json:"organization"`
+	Token string `json:"token"`
+}
+
 type Claims struct {
 	Username     string `json:"username"`
 	Organization string `json:"organization"`
@@ -74,13 +86,13 @@ type Claims struct {
 }
 
 func Login(c *gin.Context) {
-	var user User
+	var user UserLogin
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, "couldn't serialize body")
 		return
 	}
 
-	var userResult User
+	var userResult UserRequest
 	usersC := db.Collection("users")
 	ctx, _ := context.WithTimeout(context.Background(), time.Second*10)
 
@@ -98,7 +110,7 @@ func Login(c *gin.Context) {
 	expirationTime := time.Now().Add(5 * time.Minute)
 	claims := &Claims{
 		Username:     user.Username,
-		Organization: user.Organization,
+		Organization: userResult.Organization,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
@@ -112,7 +124,11 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("token", tokenString, expirationTime.Minute(), "", "", false, false)
+	c.JSON(http.StatusCreated, UserReponse{
+		userResult.Username, 
+		userResult.Organization, 
+		tokenString},
+	)
 }
 
 func HashPassword(password string) (string, error) {
@@ -126,8 +142,9 @@ func CheckPasswordHash(password, hash string) bool {
 }
 
 func main() {
-	router.POST("/login", Login)
-	router.POST("/users", Register)
+	router.Use(cors.Default())
+	router.POST("/api/users/auth", Login)
+	router.POST("/api/users", Register)
 	ConnDB()
 	router.Run(":8080")
 }
