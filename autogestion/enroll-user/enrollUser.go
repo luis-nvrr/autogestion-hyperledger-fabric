@@ -18,8 +18,6 @@ const (
 	org3HostName   = "org3.example.com"
 	org1User       = "User1@org1.example.com"
 	org3User       = "User3@org3.example.com"
-	teachersWallet = "teachers-wallet"
-	studentsWallet = "students-wallet"
 )
 
 var now = time.Now()
@@ -32,12 +30,12 @@ func main() {
 
 	switch org {
 	case "org1":
-		err := addUserToWallet(userId, org1MSP, org1HostName, org1User, teachersWallet)
+		err := addUserToWallet(userId, org1MSP, org1HostName, org1User, "wallet")
 		if err != nil {
 			log.Println(err)
 		}
 	case "org3":
-		err := addUserToWallet(userId, org3MSP, org3HostName, org3User, studentsWallet)
+		err := addUserToWallet(userId, org3MSP, org3HostName, org3User, "wallet")
 		if err != nil {
 			log.Println(err)
 		}
