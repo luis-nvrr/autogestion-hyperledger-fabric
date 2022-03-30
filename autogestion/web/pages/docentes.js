@@ -1,6 +1,7 @@
 import Layout from "../components/layout";
 import { Heading, SimpleGrid as Grid, Text, Stack } from "@chakra-ui/react";
 import ActionCard from "../components/actionCard";
+import withAuth from "../lib/withAuth";
 
 const actions = [
   { id: 1, name: "Registrar nota", image: "/images/notes.jpg" },
@@ -8,7 +9,7 @@ const actions = [
   { id: 3, name: "Ver transacciones", image: "/images/books.jpg" },
 ];
 
-export default function Docentes() {
+function Docentes() {
   return (
     <Layout>
       <Stack
@@ -29,3 +30,5 @@ export default function Docentes() {
     </Layout>
   );
 }
+
+export default withAuth(Docentes);

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -8,16 +8,27 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react";
-import { userService } from "../services";
 import useUser from "../lib/useUser";
+import { useRouter } from "next/router";
 
 export default function LoginBox() {
-  const { mutateUser } = useUser({
-    redirectIfFound: true,
-  });
-
+  const router = useRouter();
+  const { user, login } = useUser();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+
+  useEffect(() => {
+    const mapToRoute = {
+      org1: "/docentes",
+      org2: "/estudiantes",
+    };
+    console.log(user);
+    if (user === undefined) {
+      return;
+    }
+
+    router.push(mapToRoute[user.organization]);
+  }, [user, router]);
 
   const handleUserChange = (event) => {
     setUsername(event.target.value);
@@ -29,7 +40,7 @@ export default function LoginBox() {
 
   const handleLoginSubmit = (event) => {
     event.preventDefault();
-    userService.login(username, password).then(mutateUser).catch(console.log);
+    login(username, password);
 
     setUsername("");
     setPassword("");

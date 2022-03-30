@@ -1,10 +1,11 @@
 import { Text, Stack, Heading, Grid } from "@chakra-ui/react";
 import Layout from "../components/layout";
 import ActionCard from "../components/actionCard";
+import withAuth from "../lib/withAuth";
 
 const actions = [{ id: 1, name: "Ver notas", image: "/images/books.jpg" }];
 
-export default function Alumnos() {
+function Alumnos() {
   return (
     <Layout>
       <Stack
@@ -25,3 +26,5 @@ export default function Alumnos() {
     </Layout>
   );
 }
+
+export default withAuth(Alumnos);
