@@ -1,8 +1,14 @@
 import { Center, Stack, Text, Image, AspectRatio } from "@chakra-ui/react";
 
-export default function ActionCard({ name, image }) {
+export default function ActionCard({ name, image, handleClick }) {
   return (
-    <Center padding={6} boxShadow="lg" borderRadius="xl">
+    <Center
+      padding={6}
+      boxShadow="lg"
+      borderRadius="xl"
+      onClick={handleClick}
+      cursor="pointer"
+    >
       <Stack spacing={4}>
         <Text fontSize="md" fontWeight="bold">
           {name}
