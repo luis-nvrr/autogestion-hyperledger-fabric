@@ -24,66 +24,53 @@ const (
 )
 
 type Student struct {
-	ID       int         `json:"ID"`
-	Name     string      `json:"Name"`
-	LastName string      `json:"LastName"`
-	Year     YearOfStudy `json:"Year"`
+	Id       int         `json:"id"`
+	Name     string      `json:"name"`
+	LastName string      `json:"lastName"`
+	Year     YearOfStudy `json:"year"`
 }
-
-type GradeInstance int64
-
-const (
-	Exam GradeInstance = iota
-	Lab
-	Presentation
-)
-
 type Grade struct {
-	ID           string        `json:"ID"`
-	Value        float64       `json:"Value"`
-	Timestamp    time.Time     `json:"Timestamp"`
-	Student      *Student      `json:"Student"`
-	Instance     GradeInstance `json:"GradeInstance"`
-	Observations string        `json:"Observations"`
+	Id           string    `json:"id"`
+	Grade        float64   `json:"grade"`
+	Date         time.Time `json:"date"`
+	Student      *Student  `json:"student"`
+	Instance     string    `json:"instance"`
+	Observations string    `json:"observations"`
 }
 
-func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) error {
-
+func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) (*[]Grade, error) {
 	mspid, err := ctx.GetClientIdentity().GetMSPID()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if mspid == "Org3MSP" {
-		return errors.New("invalid user")
+		return nil, errors.New("invalid user")
 	}
 
 	student := Student{79581, "Luis", "Navarro", Fifth}
 
 	grades := []Grade{
-		{ID: "1", Value: 9, Timestamp: time.Date(2022, time.Month(time.April), 14, 12, 30, 0, 0, time.UTC), Student: &student, Instance: Exam, Observations: "great!"},
-		{ID: "2", Value: 5, Timestamp: time.Date(2022, time.Month(time.April), 15, 12, 30, 0, 0, time.UTC), Student: &student, Instance: Presentation, Observations: "not great!"},
+		{"grade1", 9, time.Date(2022, time.Month(time.April), 14, 12, 30, 0, 0, time.UTC), &student, "exam", "great!"},
+		{"grade2", 5, time.Date(2022, time.Month(time.April), 14, 12, 30, 0, 0, time.UTC), &student, "lab", "not so great!"},
 	}
 
 	for _, grade := range grades {
 		assetJSON, err := json.Marshal(grade)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
-		err = ctx.GetStub().PutState(grade.ID, assetJSON)
+		err = ctx.GetStub().PutState(grade.Id, assetJSON)
 		if err != nil {
-			return fmt.Errorf("failed to put to world state. %v", err)
+			return nil, fmt.Errorf("failed to put to world state. %v", err)
 		}
 	}
 
-	return nil
+	return &grades, nil
 }
 
-// GetAllAssets returns all assets found in world state
 func (s *SmartContract) GetAllGrades(ctx contractapi.TransactionContextInterface) ([]*Grade, error) {
-	// range query with empty string for startKey and endKey does an
-	// open-ended query of all assets in the chaincode namespace.
 	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
 	if err != nil {
 		return nil, err
@@ -106,4 +93,63 @@ func (s *SmartContract) GetAllGrades(ctx contractapi.TransactionContextInterface
 	}
 
 	return grades, nil
+}
+
+func (s *SmartContract) CreateGrade(ctx contractapi.TransactionContextInterface,
+	gradeValue float64,
+	date time.Time,
+	studentId int,
+	studentName string,
+	studentLastName string,
+	studentYear int,
+	instance string,
+	observations string) (*Grade, error) {
+
+	mspid, err := ctx.GetClientIdentity().GetMSPID()
+	if err != nil {
+		return nil, err
+	}
+
+	if mspid == "Org3MSP" {
+		return nil, errors.New("invalid user")
+	}
+
+	gradeId := fmt.Sprintf("%d-%d-%s-%.2f", studentId, studentYear, instance, gradeValue)
+	exists, err := s.GradeExists(ctx, gradeId)
+	if err != nil {
+		return nil, err
+	}
+	if exists {
+		return nil, fmt.Errorf("the grade %s already exists", gradeId)
+	}
+
+	grade := Grade{
+		gradeId,
+		gradeValue,
+		date,
+		&Student{studentId, studentName, studentLastName, YearOfStudy(studentYear)},
+		instance,
+		observations,
+	}
+
+	gradeJSON, err := json.Marshal(grade)
+	if err != nil {
+		return nil, err
+	}
+
+	err = ctx.GetStub().PutState(gradeId, gradeJSON)
+	if err != nil {
+		return nil, err
+	}
+
+	return &grade, nil
+}
+
+func (s *SmartContract) GradeExists(ctx contractapi.TransactionContextInterface, id string) (bool, error) {
+	assetJSON, err := ctx.GetStub().GetState(id)
+	if err != nil {
+		return false, fmt.Errorf("failed to read from world state: %v", err)
+	}
+
+	return assetJSON != nil, nil
 }
