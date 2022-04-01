@@ -29,7 +29,7 @@ type CreateStudentRequest struct {
 }
 
 type CreateGradeRequest struct {
-	Grade        float64               `json:"grade"`
+	Grade        int                   `json:"grade"`
 	Date         string                `json:"date"`
 	Student      *CreateStudentRequest `json:"student"`
 	Instance     string                `json:"instance"`
@@ -90,7 +90,7 @@ func connectToGatway(claims *Claims, wallet *gateway.Wallet) (*gateway.Gateway, 
 func submitTransaction(c *gin.Context, query string, arg ...string) ([]byte, error) {
 	if err := os.Setenv("DISCOVERY_AS_LOCALHOST", "true"); err != nil {
 		c.JSON(http.StatusInternalServerError, "error setting env variable")
-		log.Fatalf("Error setting DISCOVERY_AS_LOCALHOST environemnt variable: %v", err)
+		log.Printf("Error setting DISCOVERY_AS_LOCALHOST environemnt variable: %v", err)
 		return nil, err
 	}
 
@@ -98,42 +98,42 @@ func submitTransaction(c *gin.Context, query string, arg ...string) ([]byte, err
 	claims, err := getClaims(tokenString)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, "error reading jwt")
-		log.Fatalf("failed to get jwt claims: %v", err)
+		log.Printf("failed to get jwt claims: %v", err)
 		return nil, err
 	}
 
 	wallet, err := getWallet()
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, "wallet not found")
-		log.Fatalf("failed to create wallet: %v", err)
+		log.Printf("failed to create wallet: %v", err)
 		return nil, err
 	}
 	if !wallet.Exists(claims.Username) {
 		c.JSON(http.StatusUnauthorized, "user not found")
-		log.Fatal("failed to find user certificate")
+		log.Printf("failed to find user certificate")
 		return nil, err
 	}
 
 	gw, err := connectToGatway(claims, wallet)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, "failed to connect to gateway")
-		log.Fatalf("failed to connect to gateway: %v", err)
+		log.Printf("failed to connect to gateway: %v", err)
 	}
 	defer gw.Close()
 
 	network, err := gw.GetNetwork("mychannel")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, "failed to get channel")
-		log.Fatalf("Failed to get network: %v", err)
+		log.Printf("Failed to get network: %v", err)
 		return nil, err
 	}
 
 	log.Printf("--> Submit Transaction: %s\n", query)
 	contract := network.GetContract("basic")
-	result, err := contract.SubmitTransaction(query)
+	result, err := contract.SubmitTransaction(query, arg...)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, "error submiting transaction")
-		log.Fatalf("Error submiting: %v", err)
+		log.Printf("Error submiting: %v", err)
 		return nil, err
 	}
 	return result, nil
@@ -143,10 +143,9 @@ func CreateGrade(c *gin.Context) {
 	var request CreateGradeRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, "couldn't serialize body")
-		log.Fatalf("failed to bind json: %v", err)
+		log.Printf("failed to bind json: %v", err)
 		return
 	}
-
 	query := "CreateGrade"
 	result, err := submitTransaction(c, query,
 		fmt.Sprintf("%v", request.Grade),

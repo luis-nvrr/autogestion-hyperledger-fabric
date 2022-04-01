@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
@@ -12,62 +11,51 @@ import (
 type SmartContract struct {
 	contractapi.Contract
 }
-
-type YearOfStudy int64
-
-const (
-	First YearOfStudy = iota
-	Second
-	Third
-	Fourth
-	Fifth
-)
-
 type Student struct {
-	Id       int         `json:"id"`
-	Name     string      `json:"name"`
-	LastName string      `json:"lastName"`
-	Year     YearOfStudy `json:"year"`
+	Id       int    `json:"id"`
+	Name     string `json:"name"`
+	LastName string `json:"lastName"`
+	Year     int    `json:"year"`
 }
 type Grade struct {
-	Id           string    `json:"id"`
-	Grade        float64   `json:"grade"`
-	Date         time.Time `json:"date"`
-	Student      *Student  `json:"student"`
-	Instance     string    `json:"instance"`
-	Observations string    `json:"observations"`
+	Id           string   `json:"id"`
+	Grade        int      `json:"grade"`
+	Date         string   `json:"date"`
+	Student      *Student `json:"student"`
+	Instance     string   `json:"instance"`
+	Observations string   `json:"observations"`
 }
 
-func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) (*[]Grade, error) {
+func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) error {
 	mspid, err := ctx.GetClientIdentity().GetMSPID()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if mspid == "Org3MSP" {
-		return nil, errors.New("invalid user")
+		return errors.New("invalid user")
 	}
 
-	student := Student{79581, "Luis", "Navarro", Fifth}
+	student := Student{79581, "Luis", "Navarro", 5}
 
 	grades := []Grade{
-		{"grade1", 9, time.Date(2022, time.Month(time.April), 14, 12, 30, 0, 0, time.UTC), &student, "exam", "great!"},
-		{"grade2", 5, time.Date(2022, time.Month(time.April), 14, 12, 30, 0, 0, time.UTC), &student, "lab", "not so great!"},
+		{"grade1", 9, "2020-05-12", &student, "exam", "great!"},
+		{"grade2", 5, "2020-05-12", &student, "lab", "not so great!"},
 	}
 
 	for _, grade := range grades {
 		assetJSON, err := json.Marshal(grade)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		err = ctx.GetStub().PutState(grade.Id, assetJSON)
 		if err != nil {
-			return nil, fmt.Errorf("failed to put to world state. %v", err)
+			return fmt.Errorf("failed to put to world state. %v", err)
 		}
 	}
 
-	return &grades, nil
+	return nil
 }
 
 func (s *SmartContract) GetAllGrades(ctx contractapi.TransactionContextInterface) ([]*Grade, error) {
@@ -96,8 +84,8 @@ func (s *SmartContract) GetAllGrades(ctx contractapi.TransactionContextInterface
 }
 
 func (s *SmartContract) CreateGrade(ctx contractapi.TransactionContextInterface,
-	gradeValue float64,
-	date time.Time,
+	gradeValue int,
+	date string,
 	studentId int,
 	studentName string,
 	studentLastName string,
@@ -114,7 +102,7 @@ func (s *SmartContract) CreateGrade(ctx contractapi.TransactionContextInterface,
 		return nil, errors.New("invalid user")
 	}
 
-	gradeId := fmt.Sprintf("%d-%d-%s-%.2f", studentId, studentYear, instance, gradeValue)
+	gradeId := fmt.Sprintf("%d-%d-%s-%d", studentId, studentYear, instance, gradeValue)
 	exists, err := s.GradeExists(ctx, gradeId)
 	if err != nil {
 		return nil, err
@@ -127,7 +115,7 @@ func (s *SmartContract) CreateGrade(ctx contractapi.TransactionContextInterface,
 		gradeId,
 		gradeValue,
 		date,
-		&Student{studentId, studentName, studentLastName, YearOfStudy(studentYear)},
+		&Student{studentId, studentName, studentLastName, studentYear},
 		instance,
 		observations,
 	}

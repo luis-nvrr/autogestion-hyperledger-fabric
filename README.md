@@ -30,7 +30,7 @@ Autogestion blockchain is a Hyperledger Fabric based blockchain network. The goa
 
     ```bash
     cd test-network
-    ./network.sh up createChannel -c mychannel
+    ./network.sh up createChannel -c mychannel -ca
     ```
 3. Deploy the smartcontract to the channel
 

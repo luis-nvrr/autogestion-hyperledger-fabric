@@ -73,7 +73,7 @@ func addUserToWallet(user, orgMSP, orgHostName, orgUser, walletName string) erro
 		"msp",
 	)
 
-	certPath := filepath.Join(credPath, "signcerts", orgUser+"-"+"cert.pem")
+	certPath := filepath.Join(credPath, "signcerts", "cert.pem")
 	cert, err := ioutil.ReadFile(filepath.Clean(certPath))
 	if err != nil {
 		return err
