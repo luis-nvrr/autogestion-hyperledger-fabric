@@ -41,7 +41,7 @@ Autogestion blockchain is a Hyperledger Fabric based blockchain network. The goa
 4. Create a test teacher identity in the network
 
     ```bash
-    cd ../autogestion/enroll-user
+    cd ../autogestion/users-application
     go run enrollUser.go org1 test
     ```
 
@@ -55,7 +55,7 @@ Autogestion blockchain is a Hyperledger Fabric based blockchain network. The goa
 6. Create a user in the database for the test user
 
     ```bash
-    cd ../user-service
+    cd ../authentication-service
     go run server.go
     ```
     ```bash
@@ -117,6 +117,22 @@ Autogestion blockchain is a Hyperledger Fabric based blockchain network. The goa
 	    "observations": "nada"
     }'
     ```
+    
+    
+## Instructions to stop the project
+
+1. Go to the root directory of the project. Shut down the blockchain.
+
+    ```bash
+    cd test-network
+    ./network.sh down
+    ```
+
+2. Stop the database container.
+
+    ```bash
+    docker stop mongo-database_mongodb_container_1
+    ```
 
 
 ## Architecture
@@ -131,6 +147,7 @@ The network consists of:
 - 1 Web application
 
 The architecture-diagram.jpg file shows a rough diagram of the blockchain network.
+![Architecture diagram](https://github.com/luis-nvrr/autogestion-hyperledger-fabric/blob/main/architecture-diagram.png)
 
 
 ## Smartcontract
