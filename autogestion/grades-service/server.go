@@ -57,7 +57,7 @@ func getClaims(tokenString string) (*Claims, error) {
 }
 
 func getWallet() (*gateway.Wallet, error) {
-	walletPath := filepath.Join("..", "enroll-user", "wallet")
+	walletPath := filepath.Join("..", "users-application", "wallet")
 	wallet, err := gateway.NewFileSystemWallet(walletPath)
 	if err != nil {
 		return nil, err

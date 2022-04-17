@@ -9,3 +9,9 @@ organizations/peerOrganizations/*
 system-genesis-block/*
 *.tar.gz
 log.txt
+*IssuerPublicKey
+*IssuerRevocationPublicKey
+*ca-cert.pem
+*fabric-ca-server.db
+*msp
+*tls-cert.pem
