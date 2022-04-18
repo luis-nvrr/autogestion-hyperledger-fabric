@@ -12,13 +12,8 @@ Autogestion blockchain is a Hyperledger Fabric based blockchain network. The goa
    - Docker-compose
    - Go 
 
-- Install the Hyperledger Fabric binaries. Read more on [Hyperledger binaries](https://hyperledger-fabric.readthedocs.io/en/latest/install.html)
 
-    ```bash
-    curl -sSL https://bit.ly/2ysbOFE | bash -s
-    ```
-
-## Instructions to create a grade
+## Installation
 
 1. Clone the repository
    
@@ -26,36 +21,44 @@ Autogestion blockchain is a Hyperledger Fabric based blockchain network. The goa
     git clone https://github.com/luis-nvrr/autogestion-hyperledger-fabric && cd autogestion-hyperledger-fabric
    ```
 
-2. Bring up the blockchain network with a channel named mychannel
+2. Install the Hyperledger Fabric binaries & docker images
+
+    ```bash
+    bash install.sh
+    ```
+
+## Instructions to create a grade
+
+1. Bring up the blockchain network with a channel named mychannel
 
     ```bash
     cd test-network
     ./network.sh up createChannel -c mychannel -ca
     ```
-3. Deploy the smartcontract to the channel
+2. Deploy the smartcontract to the channel
 
     ```bash
     ./network.sh deployCC -ccn basic -ccp ../autogestion/chaincode-go -ccl go -c mychannel
     ```
 
-4. Create a test teacher identity in the network
+3. Create a test teacher identity in the network
 
     ```bash
-    cd ../autogestion/enroll-user
+    cd ../autogestion/users-application
     go run enrollUser.go org1 test
     ```
 
-5. Bring up the MongoDB database
+4. Bring up the MongoDB database
    
    ```bash
    cd ../mongo-database
    docker-compose up -d
    ```
 
-6. Create a user in the database for the test user
+5. Create a user in the database for the test user
 
     ```bash
-    cd ../user-service
+    cd ../authentication-service
     go run server.go
     ```
     ```bash
@@ -69,7 +72,7 @@ Autogestion blockchain is a Hyperledger Fabric based blockchain network. The goa
         }'
     ```
 
-7. Log in the test user to generate a JWT token
+6. Log in the test user to generate a JWT token
 
     ```bash
     curl --request POST \
@@ -90,14 +93,14 @@ Autogestion blockchain is a Hyperledger Fabric based blockchain network. The goa
     }
     ```
 
-8. Bring up the grades service
+7. Bring up the grades service
    
    ```bash
    cd ../grades-service
    go run server.go
    ```
 
-9. Create a grade. Replace {$TOKEN} with the JWT token obtained in the last step.
+8. Create a grade. Replace {$TOKEN} with the JWT token obtained in the last step.
 
     ```bash
     curl --request POST \
@@ -117,6 +120,22 @@ Autogestion blockchain is a Hyperledger Fabric based blockchain network. The goa
 	    "observations": "nada"
     }'
     ```
+    
+    
+## Instructions to stop the project
+
+1. Go to the root directory of the project. Shut down the blockchain.
+
+    ```bash
+    cd test-network
+    ./network.sh down
+    ```
+
+2. Stop the database container.
+
+    ```bash
+    docker-compose down
+    ```
 
 
 ## Architecture
@@ -131,6 +150,7 @@ The network consists of:
 - 1 Web application
 
 The architecture-diagram.jpg file shows a rough diagram of the blockchain network.
+![Architecture diagram](https://github.com/luis-nvrr/autogestion-hyperledger-fabric/blob/main/architecture-diagram.png)
 
 
 ## Smartcontract

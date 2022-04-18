@@ -23,7 +23,7 @@ const (
 var now = time.Now()
 
 func main() {
-	log.Println("============ enrollTeacher application-golang starts ============")
+	log.Println("============ enrollUser application-golang starts ============")
 
 	org := os.Args[1]
 	userId := os.Args[2]
