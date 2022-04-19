@@ -36,6 +36,10 @@ type CreateGradeRequest struct {
 	Observations string                `json:"observations"`
 }
 
+type GetGradesRequest struct {
+	Id int `json:"id"`
+}
+
 type Claims struct {
 	Username     string `json:"username"`
 	Organization string `json:"organization"`
@@ -165,8 +169,26 @@ func CreateGrade(c *gin.Context) {
 	c.JSON(http.StatusCreated, result)
 }
 
+func GetGrades(c *gin.Context) {
+	var request GetGradesRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, "couldn't serialize body")
+		log.Printf("failed to bind json: %v", err)
+		return
+	}
+	query := "GetStudentGrades"
+	result, err := submitTransaction(c, query, fmt.Sprintf("%d", request.Id))
+
+	if err != nil {
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
 func main() {
 	router.Use(cors.Default())
 	router.POST("/api/grades", CreateGrade)
+	router.GET("/api/grades", GetGrades)
 	router.Run(":8081")
 }
