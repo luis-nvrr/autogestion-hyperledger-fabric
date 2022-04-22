@@ -107,7 +107,7 @@ pullDockerImages() {
 }
 
 DOCKER=true
-SAMPLES=true
+SAMPLES=false
 BINARIES=true
 
 # Parse commandline args pull out
