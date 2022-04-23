@@ -83,6 +83,34 @@ func (s *SmartContract) GetAllGrades(ctx contractapi.TransactionContextInterface
 	return grades, nil
 }
 
+func (s *SmartContract) GetStudentGrades(ctx contractapi.TransactionContextInterface, id int) ([]*Grade, error) {
+	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
+	if err != nil {
+		return nil, err
+	}
+	defer resultsIterator.Close()
+
+	var grades []*Grade
+	for resultsIterator.HasNext() {
+		queryResponse, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		var grade Grade
+		err = json.Unmarshal(queryResponse.Value, &grade)
+		if err != nil {
+			return nil, err
+		}
+
+		if grade.Student.Id == id {
+			grades = append(grades, &grade)
+		}
+	}
+
+	return grades, nil
+}
+
 func (s *SmartContract) CreateGrade(ctx contractapi.TransactionContextInterface,
 	gradeValue int,
 	date string,
